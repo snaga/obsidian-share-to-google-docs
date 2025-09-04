@@ -1,94 +1,69 @@
-# Obsidian Sample Plugin
+# ✨ Share to Google Docs ✨
 
-This is a sample plugin for Obsidian (https://obsidian.md).
+Obsidianのノート、秒でGoogle Docsにシェアしたくない？
+「Share to Google Docs」があれば、今書いてるそのノートを、見た目そのままワンパンでGoogle Docsにエクスポートできちゃうよ！マジ最高！💖
 
-This project uses TypeScript to provide type checking and documentation.
-The repo depends on the latest plugin API (obsidian.d.ts) in TypeScript Definition format, which contains TSDoc comments describing what it does.
+いちいちコピペして、見出しとか太字とか直すの、めんどすぎじゃない？
+このプラグインがあれば、そんなだるい作業とはマジおさらば！🚀
 
-This sample plugin demonstrates some of the basic functionality the plugin API can do.
-- Adds a ribbon icon, which shows a Notice when clicked.
-- Adds a command "Open Sample Modal" which opens a Modal.
-- Adds a plugin setting tab to the settings page.
-- Registers a global click event and output 'click' to the console.
-- Registers a global interval which logs 'setInterval' to the console.
+---
 
-## First time developing plugins?
+### 🌟 このプラグインの推しポイント 🌟
 
-Quick starting guide for new plugin devs:
+*   **ワンクリックでエクスポート**: リボンアイコンかコマンドをポチるだけで、今開いてるファイルがGoogle Docsに変身！
+*   **見た目キープ**: 見出し、箇条書き、太字や斜体も、ぜーんぶGoogle Docsでも再現してくれるから、あとから手直しとかマジ不要！
+*   **すぐシェアできる**: エクスポートが終わったら、完成したGoogle Docsがブラウザでシャキーンって開くから、すぐ友達や仕事仲間にシェアできちゃう！
 
-- Check if [someone already developed a plugin for what you want](https://obsidian.md/plugins)! There might be an existing plugin similar enough that you can partner up with.
-- Make a copy of this repo as a template with the "Use this template" button (login to GitHub if you don't see it).
-- Clone your repo to a local development folder. For convenience, you can place this folder in your `.obsidian/plugins/your-plugin-name` folder.
-- Install NodeJS, then run `npm i` in the command line under your repo folder.
-- Run `npm run dev` to compile your plugin from `main.ts` to `main.js`.
-- Make changes to `main.ts` (or create new `.ts` files). Those changes should be automatically compiled into `main.js`.
-- Reload Obsidian to load the new version of your plugin.
-- Enable plugin in settings window.
-- For updates to the Obsidian API run `npm update` in the command line under your repo folder.
+---
 
-## Releasing new releases
+### 🛠️ 使い始めるまでのロードマップ 🛠️
 
-- Update your `manifest.json` with your new version number, such as `1.0.1`, and the minimum Obsidian version required for your latest release.
-- Update your `versions.json` file with `"new-plugin-version": "minimum-obsidian-version"` so older versions of Obsidian can download an older version of your plugin that's compatible.
-- Create new GitHub release using your new version number as the "Tag version". Use the exact version number, don't include a prefix `v`. See here for an example: https://github.com/obsidianmd/obsidian-sample-plugin/releases
-- Upload the files `manifest.json`, `main.js`, `styles.css` as binary attachments. Note: The manifest.json file must be in two places, first the root path of your repository and also in the release.
-- Publish the release.
+#### Step 1: Googleで"カギ"をGETしよ！
 
-> You can simplify the version bump process by running `npm version patch`, `npm version minor` or `npm version major` after updating `minAppVersion` manually in `manifest.json`.
-> The command will bump version in `manifest.json` and `package.json`, and add the entry for the new version to `versions.json`
+ちょっとだけ頑張るところ、ここだけ！
+うちらのプラグインが、あなたの代わりにGoogle Driveにアクセスするための"カギ"（Client ID と Client Secret）をGETしてね！
 
-## Adding your plugin to the community plugin list
+1.  [Google Cloud Console](https://console.cloud.google.com/apis/credentials) に行く。
+2.  初めてなら、まず新しい**プロジェクト**を作る。（名前はなんでもOK！）
+3.  画面の上にある「**+ 資格情報を作成**」をクリックして、「**OAuth クライアント ID**」を選ぶ。
+4.  「アプリケーションの種類」は「**デスクトップアプリ**」を選んでね。
+5.  名前を入力して「作成」を押すと、**クライアントID**と**クライアントシークレット**が表示されるから、それをコピーしといて！✨
 
-- Check the [plugin guidelines](https://docs.obsidian.md/Plugins/Releasing/Plugin+guidelines).
-- Publish an initial version.
-- Make sure you have a `README.md` file in the root of your repo.
-- Make a pull request at https://github.com/obsidianmd/obsidian-releases to add your plugin.
+> **なんでこれが必要なの？**
+> このプラグインは、あなたのPCの中だけで動くから、Googleに「怪しいもんじゃないよ、この人がちゃんと許可したんだよ」ってお知らせするために、あなた専用のカギが必要なの！ちょっとめんどいけど、セキュリティのためだから、よろしくね！🙏
 
-## How to use
+#### Step 2: プラグインをインストールしよ！
 
-- Clone this repo.
-- Make sure your NodeJS is at least v16 (`node --version`).
-- `npm i` or `yarn` to install dependencies.
-- `npm run dev` to start compilation in watch mode.
+Obsidianのコミュニティプラグインから「Share to Google Docs」を探してインストールしてね！（まだないけど、これから申請する！💪）
 
-## Manually installing the plugin
+それか、最新版を使いたいせっかちさんは、このリポジトリの[Releasesページ](https://github.com/satos/obsidian-export-to-google-docs-plugin/releases)から`main.js`, `manifest.json`, `styles.css`をダウンロードして、Obsidianのプラグインフォルダ（`.obsidian/plugins/share-to-google-docs`）に手動で入れてもOK！
 
-- Copy over `main.js`, `styles.css`, `manifest.json` to your vault `VaultFolder/.obsidian/plugins/your-plugin-id/`.
+#### Step 3: プラグインを設定しよ！
 
-## Improve code quality with eslint (optional)
-- [ESLint](https://eslint.org/) is a tool that analyzes your code to quickly find problems. You can run ESLint against your plugin to find common bugs and ways to improve your code. 
-- To use eslint with this project, make sure to install eslint from terminal:
-  - `npm install -g eslint`
-- To use eslint to analyze this project use this command:
-  - `eslint main.ts`
-  - eslint will then create a report with suggestions for code improvement by file and line number.
-- If your source code is in a folder, such as `src`, you can use eslint with this command to analyze all files in that folder:
-  - `eslint .\src\`
+1.  Obsidianの設定画面を開いて、「Share to Google Docs」のタブをクリック。
+2.  さっきGETした**クライアントID**と**クライアントシークレット**を、所定の場所に入力！
+3.  「**Googleと連携**」ボタンをポチッ！
+4.  ブラウザが開いて、Googleの許可画面が出るから、自分のアカウントを選んで「許可」してね！
+5.  「認証に成功しました！」って出たら、準備完了！いえい！✌️
 
-## Funding URL
+---
 
-You can include funding URLs where people who use your plugin can financially support it.
+### 🚀 使い方 🚀
 
-The simple way is to set the `fundingUrl` field to your link in your `manifest.json` file:
+使い方はマジかんたん！
 
-```json
-{
-    "fundingUrl": "https://buymeacoffee.com"
-}
-```
+*   **リボンアイコンから**: Obsidianの左側にあるリボンアイコン（なんかイケてるアイコンにしとく！）をクリック！
+*   **コマンドパレットから**: `Ctrl+P` (or `Cmd+P`) を押して、「Share to Google Docs: Export to Google Docs」って打ってエンター！
 
-If you have multiple URLs, you can also do:
+これだけで、今開いてるファイルがGoogle Docsに飛んでって、自動でブラウザで開くよ！
 
-```json
-{
-    "fundingUrl": {
-        "Buy Me a Coffee": "https://buymeacoffee.com",
-        "GitHub Sponsor": "https://github.com/sponsors",
-        "Patreon": "https://www.patreon.com/"
-    }
-}
-```
+---
 
-## API Documentation
+### 💖 今後のアプデ予定 💖
 
-See https://github.com/obsidianmd/obsidian-api
+*   **認証をもっと簡単に！**: 今はみんなにClient IDとか取ってもらっててマジ申し訳ない！将来的には、ボタン一つで認証が終わる、神的なUXにするから待ってて！
+*   **画像も一緒にアップ！**: 今は文字だけだけど、ノートに貼ってある画像もちゃんとGoogle Docsに表示されるようにする！
+
+---
+
+Enjoy! 💖
