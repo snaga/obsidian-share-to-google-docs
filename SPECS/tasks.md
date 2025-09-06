@@ -7,7 +7,7 @@
 
 ---
 
-#### Milestone 1: まずは土台作りと鬼大事な認証から！
+#### Milestone 1: まずは土台作りと鬼大事な認証から！ (完了済)
 
 プラグインの骨格を作って、最重要ミッションのGoogleアカウント連携を終わらせちゃお！
 
@@ -23,7 +23,7 @@
     -   [x] `PluginSettings` と `GoogleAuthTokens` の型をTypeScriptのインターフェースで作っとく。
 -   [x] **Obsidianヘルパー (`obsidianHelper.ts`) の実装**
     -   [x] 今開いてるファイルの中身とタイトルをGETする関数を実装する。
--   [x] **Google OAuthハンドラー (`auth.ts`) の実装**
+-   [x] **Google OAuthハンドラー (`auth.ts`) の実装 (`googleapis`版)**
     -   [x] Googleの認証画面に飛ぶためのURLを生成するロジックを実装！
     -   [x] 認証が終わった連絡を受け取るためのローカルサーバーを立てたり閉じたりする処理を実装！
     -   [x] 認証コードをアクセストークンとリフレッシュトークンに交換して、ちゃんと保存する処理を実装！
@@ -35,11 +35,11 @@
 
 ---
 
-#### Milestone 2: メイン機能！ファイルエクスポートいくぞ！
+#### Milestone 2: メイン機能！ファイルエクスポートいくぞ！ (完了済)
 
 認証ができたら、いよいよメインディッシュのMarkdownエクスポート機能を実装するよ！
 
--   [x] **Google APIクライアント (`googleApiClient.ts`) の実装**
+-   [x] **Google APIクライアント (`googleApiClient.ts`) の実装 (`googleapis`版)**
     -   [x] アクセストークンを使って、Google Drive APIにリクエストを送るための基本の仕組みを実装する。
     -   [x] Markdownのテキストを、Google Driveに`.md`ファイルとしてアップロードする関数を実装！
     -   [x] Driveにある`.md`ファイルを、Googleドキュメントに華麗に変換コピーする関数を実装！
@@ -54,20 +54,42 @@
 
 ---
 
-#### Milestone 3: 最終仕上げ！コードもドキュメントもピカピカに！
+#### Milestone 3: `googleapis`から卒業！`fetch`でキメるぜ！ (完了済)
+
+`googleapis`ライブラリをアンインストールして、Obsidian標準の`fetch` APIでGoogle APIを直接叩くように大改造！
+
+-   [x] **`googleapis`のアンインストール**
+    -   [x] `npm uninstall googleapis` を実行して、プロジェクトからライブラリを削除。
+-   [x] **Google OAuthハンドラー (`auth.ts`) の`fetch`化**
+    -   [x] `fetch`でGoogleのトークンエンドポイントにリクエストを送る処理を実装。
+    -   [x] 認証コードをアクセストークンに交換する処理を`fetch`版に書き換え。
+    -   [x] リフレッシュトークンでアクセストークンを更新する処理を`fetch`版に書き換え。
+-   [x] **Google APIクライアント (`googleApiClient.ts`) の`fetch`化**
+    -   [x] `fetch`でGoogle Drive APIに`multipart/related`形式のリクエストを送る処理を実装。
+    -   [x] Markdownから直接Google Docsに変換・アップロードするロジックに一本化。
+-   [x] **型定義の見直し (`types.ts`)**
+    -   [x] `googleapis`に依存していた型定義を自前のものに修正。
+-   [x] **動作確認**
+    -   [x] 新しい`fetch`ベースのコードで、認証とエクスポートが正常に動作することを確認。
+
+---
+
+#### Milestone 4: 最終仕上げ！コードもドキュメントもピカピカに！ (完了済)
 
 最後に、コードをキレイにして、みんなが使えるようにドキュメントを整えたらマジ完璧！
 
--   [ ] **コードのリファクタリング**
-    -   [ ] コード全体をチェックして、イケてない部分を修正したり、分かりやすく整理したりする。
-    -   [ ] 未来のうちらが見ても分かるように、コメントとかもちゃんと書いとく。
 -   [x] **UIの改善**
-    -   [x] プラグインの名前や説明を `manifest.json` でイケてる感じに更新する。
+    -   [x] プラグインの名前を「Share to Google Docs」に、IDを`share-to-google-docs`に変更 (`manifest.json`)。
+    -   [x] 設定画面のタイトルを「Share to Google Docs の設定」に変更 (`settings.ts`)。
     -   [x] 設定画面のClient IDとSecretの入力欄をパスワード形式にして、入力内容が見えないようにする。
+-   [x] **コードのリファクタリング**
+    -   [x] `googleApiClient.ts` のエラーハンドリングを改善し、APIからのエラーメッセージをユーザーに通知するようにした。
+    -   [x] `auth.ts` のURLやスコープなどのマジックナンバーを定数に切り出した。
+    -   [x] `main.ts` のエクスポート処理を`startExport`メソッドに切り出し、コマンド名などをアプリ名に合わせて更新した。
 -   [x] **ドキュメントの更新**
-    -   [x] ここまでの変更点を、`requirements.md`, `design.md`, `tasks.md` に全部反映させる。
-    -   [ ] `README.md` に、プラグインのインストール方法、設定方法、使い方を、誰が読んでも分かるように書く。
-    -   [ ] リリースするなら、リリースノートもちゃんと書く！
+    -   [x] `requirements.md`, `design.md`, `tasks.md` に全ての変更点を反映させた。
+    -   [x] `README.md` を全面的に書き直し、ギャル語のイケてる使い方ガイドにした。
+-   [ ] **リリースノートの準備** (これはリリース直前にやる！)
 
 ---
 ### 🚀 将来の拡張タスク 🚀
