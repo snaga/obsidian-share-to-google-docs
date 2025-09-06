@@ -1,7 +1,13 @@
-import { Notice } from 'obsidian';
-import { google } from 'googleapis';
+import { Notice, requestUrl } from 'obsidian';
 import * as http from 'http';
 import MyPlugin from './main';
+import { GoogleAuthTokens } from './types';
+
+// --- ✨ イケてる定数たち ✨ ---
+const REDIRECT_URI = 'http://localhost:3000/callback';
+const GOOGLE_AUTH_URL = 'https://accounts.google.com/o/oauth2/v2/auth';
+const GOOGLE_TOKEN_URL = 'https://oauth2.googleapis.com/token';
+const GOOGLE_DRIVE_SCOPE = 'https://www.googleapis.com/auth/drive.file';
 
 // 💖 認証フローを開始するイケてる関数 💖
 export async function handleAuth(plugin: MyPlugin): Promise<void> {
@@ -12,20 +18,16 @@ export async function handleAuth(plugin: MyPlugin): Promise<void> {
     return;
   }
 
-  const oAuth2Client = new google.auth.OAuth2(
-    googleClientId,
-    googleClientSecret,
-    'http://localhost:3000/callback' // リダイレクトURI
-  );
-
-  const authUrl = oAuth2Client.generateAuthUrl({
-    access_type: 'offline',
-    scope: ['https://www.googleapis.com/auth/drive.file'],
-    prompt: 'consent', // これで毎回リフレッシュトークンがもらえる
-  });
+  const authUrl = new URL(GOOGLE_AUTH_URL);
+  authUrl.searchParams.append('client_id', googleClientId);
+  authUrl.searchParams.append('redirect_uri', REDIRECT_URI);
+  authUrl.searchParams.append('response_type', 'code');
+  authUrl.searchParams.append('scope', GOOGLE_DRIVE_SCOPE);
+  authUrl.searchParams.append('access_type', 'offline');
+  authUrl.searchParams.append('prompt', 'consent');
 
   // 認証URLをブラウザで開く
-  window.open(authUrl, '_blank');
+  window.open(authUrl.toString(), '_blank');
 
   // --- ローカルサーバーを起動してコールバックを待つ ---
   const server = http
@@ -36,16 +38,31 @@ export async function handleAuth(plugin: MyPlugin): Promise<void> {
           const code = url.searchParams.get('code');
 
           if (code) {
-            const { tokens } = await oAuth2Client.getToken(code);
-            oAuth2Client.setCredentials(tokens);
+            // --- ここから fetch でトークンを取得！ ---
+            const response = await requestUrl({
+              method: 'POST',
+              url: GOOGLE_TOKEN_URL,
+              headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+              },
+              body: new URLSearchParams({
+                code,
+                client_id: googleClientId,
+                client_secret: googleClientSecret,
+                redirect_uri: REDIRECT_URI,
+                grant_type: 'authorization_code',
+              }).toString(),
+            });
+
+            const tokens = response.json;
 
             // トークンを保存する
             plugin.settings.googleAuthTokens = {
-              accessToken: tokens.access_token!,
-              refreshToken: tokens.refresh_token!,
-              scope: tokens.scope!,
-              tokenType: tokens.token_type!,
-              expiryDate: tokens.expiry_date!,
+              accessToken: tokens.access_token,
+              refreshToken: tokens.refresh_token,
+              scope: tokens.scope,
+              tokenType: tokens.token_type,
+              expiryDate: Date.now() + tokens.expires_in * 1000,
             };
             await plugin.saveSettings();
 
@@ -73,41 +90,59 @@ export async function handleLogout(plugin: MyPlugin): Promise<void> {
   new Notice('ログアウトしました！');
 }
 
-// 💖 OAuth2クライアントを取得する（トークン更新もここでやる） 💖
-export async function getOAuth2Client(plugin: MyPlugin): Promise<any> {
+// 💖 アクセストークンを取得/更新する関数 💖
+export async function getAccessToken(plugin: MyPlugin): Promise<string | null> {
   const { googleClientId, googleClientSecret, googleAuthTokens } = plugin.settings;
 
-  if (!googleClientId || !googleClientSecret || !googleAuthTokens) {
-    throw new Error('プラグインがGoogleアカウントと連携されていません。');
+  if (!googleAuthTokens) {
+    new Notice('Googleアカウントと連携していません。');
+    return null;
   }
-
-  const oAuth2Client = new google.auth.OAuth2(
-    googleClientId,
-    googleClientSecret,
-    'http://localhost:3000/callback'
-  );
-
-  oAuth2Client.setCredentials({
-    access_token: googleAuthTokens.accessToken,
-    refresh_token: googleAuthTokens.refreshToken,
-    scope: googleAuthTokens.scope,
-    token_type: googleAuthTokens.tokenType,
-    expiry_date: googleAuthTokens.expiryDate,
-  });
 
   // トークンの有効期限が切れてたら裏でこっそり更新する
-  if (new Date().getTime() > googleAuthTokens.expiryDate) {
-    const { credentials } = await oAuth2Client.refreshAccessToken();
-    plugin.settings.googleAuthTokens = {
-      accessToken: credentials.access_token!,
-      refreshToken: googleAuthTokens.refreshToken, // リフレッシュトークンは変わらない場合がある
-      scope: credentials.scope!,
-      tokenType: credentials.token_type!,
-      expiryDate: credentials.expiry_date!,
-    };
-    await plugin.saveSettings();
-    oAuth2Client.setCredentials(credentials);
+  if (Date.now() > googleAuthTokens.expiryDate) {
+    if (!googleClientId || !googleClientSecret || !googleAuthTokens.refreshToken) {
+      new Notice('トークンの更新に必要な情報がありません。再ログインしてください。');
+      await handleLogout(plugin);
+      return null;
+    }
+
+    try {
+      new Notice('Googleの認証トークンを更新中...🤫');
+      const response = await requestUrl({
+        method: 'POST',
+        url: GOOGLE_TOKEN_URL,
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams({
+          client_id: googleClientId,
+          client_secret: googleClientSecret,
+          refresh_token: googleAuthTokens.refreshToken,
+          grant_type: 'refresh_token',
+        }).toString(),
+      });
+
+      const newTokens = response.json;
+      const updatedTokens: GoogleAuthTokens = {
+        ...googleAuthTokens,
+        accessToken: newTokens.access_token,
+        scope: newTokens.scope,
+        tokenType: newTokens.token_type,
+        expiryDate: Date.now() + newTokens.expires_in * 1000,
+      };
+
+      plugin.settings.googleAuthTokens = updatedTokens;
+      await plugin.saveSettings();
+      new Notice('トークンを更新しました！');
+      return updatedTokens.accessToken;
+    } catch (error) {
+      console.error('トークン更新エラー:', error);
+      new Notice('トークンの更新に失敗しました。再ログインしてください。');
+      await handleLogout(plugin);
+      return null;
+    }
   }
 
-  return oAuth2Client;
+  return googleAuthTokens.accessToken;
 }

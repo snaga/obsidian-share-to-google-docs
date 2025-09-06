@@ -26,24 +26,24 @@ export default class MyPlugin extends Plugin {
     // リボンにアイコンを追加する
     this.addRibbonIcon(
       'upload-cloud', // アイコンの名前 (lucide.dev で探せる)
-      'Export to Google Docs',
+      'Share to Google Docs',
       (evt: MouseEvent) => {
-        this.exportToGoogleDocs();
+        this.startExport();
       }
     );
 
     // コマンドパレットにコマンドを追加する
     this.addCommand({
-      id: 'export-to-google-docs',
-      name: 'Export to Google Docs',
+      id: 'share-to-google-docs',
+      name: 'Share to Google Docs',
       callback: () => {
-        this.exportToGoogleDocs();
+        this.startExport();
       },
     });
   }
 
-  // ✨ エクスポート処理の本体 ✨
-  async exportToGoogleDocs() {
+  // ✨ エクスポート処理を開始する ✨
+  async startExport() {
     // 認証情報のチェック
     if (!this.settings.googleAuthTokens) {
       new Notification('Googleアカウントと連携してください。');
